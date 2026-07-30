@@ -2,19 +2,43 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #000000;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+@theme {
+  /* Paleta principal — Verdes */
+  --color-brand-green-100: #A8D5A2;
+  --color-brand-green-200: #6FB86A;
+  --color-brand-green-300: #3F8F3F;
+  --color-brand-green-400: #2D6B2D;
+  --color-brand-green-500: #143D14;
+
+  /* Paleta principal — Naranjas/Marrones */
+  --color-brand-orange-100: #F4C28F;
+  --color-brand-orange-200: #E8A660;
+  --color-brand-orange-300: #E07B39;
+  --color-brand-orange-400: #C1592D;
+  --color-brand-orange-500: #8B4513;
+
+  /* Paleta complementaria — Verde oliva */
+  --color-brand-olive-100: #D4E4A8;
+  --color-brand-olive-200: #C3D67E;
+  --color-brand-olive-300: #9CB83C;
+  --color-brand-olive-400: #7C9A2E;
+  --color-brand-olive-500: #5E7A1F;
+
+  /* Paleta complementaria — Dorados */
+  --color-brand-gold-100: #F5E6A8;
+  --color-brand-gold-200: #F0D66B;
+  --color-brand-gold-300: #F0C419;
+  --color-brand-gold-400: #D4A017;
+  --color-brand-gold-500: #A67C00;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #2D6B2D;
     --foreground: #ededed;
   }
 }
@@ -23,4 +47,12 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
