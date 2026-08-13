@@ -27,3 +27,81 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model MensajeContacto {
+  id        String   @id @default(cuid())
+  nombre    String
+  correo    String
+  telefono  String?
+  mensaje   String
+  leido     Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Categoria {
+  id        String     @id @default(cuid())
+  nombre    String     @unique
+  slug      String     @unique
+  productos Producto[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Producto {
+  id          String    @id @default(cuid())
+  nombre      String
+  slug        String    @unique
+  descripcion String
+  imagen      String
+  activo      Boolean   @default(true)
+
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+
+  presentaciones Presentacion[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Presentacion {
+  id                 String   @id @default(cuid())
+  cantidad           Decimal  // peso neto de CADA unidad: 500, 460, 10, 50
+  unidad             String   // "g" o "kg"
+  unidadesPorPaquete Int      @default(1)  // 1 = suelto, 25 = caja x25, etc.
+  precio             Decimal  // precio TAT del paquete completo
+  stock              Int      @default(0)
+  activo             Boolean  @default(true)
+
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pedido {
+  id              String       @id @default(cuid())
+  referencia      String?      @unique   // se llena cuando se integre Wompi
+  nombreCliente   String
+  correoCliente   String
+  telefonoCliente String
+  direccion       String
+  ciudad          String
+  estado          String       @default("pendiente") // pendiente | pagado | fallido | cancelado
+  total           Decimal
+  items           ItemPedido[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model ItemPedido {
+  id             String   @id @default(cuid())
+  pedidoId       String
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  presentacionId String
+  nombreProducto String   // snapshot
+  etiqueta       String   // snapshot: "500g" / "Caja x25 500g"
+  precioUnitario Decimal  // snapshot
+  cantidad       Int
+}

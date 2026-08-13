@@ -4,19 +4,33 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Search, ShoppingCart, ChevronDown, X } from "lucide-react";
+import { Search, ShoppingCart, ChevronDown, X, Home } from "lucide-react";
+import { useCarrito } from "@/context/CarritoContext";
 
 const secciones = [
   { nombre: "Inicio", href: "/", descripcion: "Vuelve a la página principal" },
   { nombre: "Conócenos", href: "/conocenos", descripcion: "" },
   { nombre: "Productos", href: "/productos", descripcion: "Catálogo completo de granos" },
-  { nombre: "Novedades", href: "/novedades", descripcion: "Campañas, ofertas y noticias" },
   { nombre: "Sostenibilidad", href: "/sostenibilidad", descripcion: "Nuestro compromiso ambiental" },
   { nombre: "Trabaja con Nosotros", href: "/trabaja-con-nosotros", descripcion: "Vacantes y registro de proveedores" },
   { nombre: "Contacto", href: "/contacto", descripcion: "Escríbenos o encuéntranos" },
 ];
 
 function NavItem({ nombre, href, descripcion }: (typeof secciones)[number]) {
+  if (nombre === "Inicio") {
+    return (
+      <div className="py-6">
+        <Link
+          href={href}
+          aria-label="Inicio"
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 text-gray-700 transition hover:border-brand-green-400 hover:bg-brand-green-50 hover:text-brand-green-500"
+        >
+          <Home className="h-5 w-5" />
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="group py-6">
       <Link
@@ -83,13 +97,41 @@ function BuscadorNavbar() {
 
   return (
     <div ref={contenedorRef} className="relative flex items-center">
-      {/* Barra de texto: se expande hacia la izquierda del ícono */}
+      {/* Escritorio: barra visible y proporcionada */}
       <form
         onSubmit={manejarEnvio}
-        className={`absolute right-0 top-1/2 flex -translate-y-1/2 items-center overflow-hidden rounded-full border bg-white shadow-sm transition-all duration-300 ease-out ${
-          abierto
-            ? "w-64 border-gray-200 opacity-100 sm:w-80"
-            : "w-0 border-transparent opacity-0"
+        className="hidden sm:flex items-center bg-gray-100 rounded-full px-3 py-1.5 w-[220px] sm:w-[320px] md:w-[380px] gap-2"
+      >
+        <Search className="h-4 w-4 text-gray-500" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={consulta}
+          onChange={(evento) => setConsulta(evento.target.value)}
+          onKeyDown={manejarTecla}
+          placeholder="Buscar productos..."
+          className="flex-1 bg-transparent text-sm text-gray-800 placeholder:text-gray-500 outline-none"
+        />
+        {consulta ? (
+          <button
+            type="button"
+            onClick={() => {
+              setConsulta("");
+              inputRef.current?.focus();
+            }}
+            aria-label="Limpiar búsqueda"
+            className="text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </form>
+
+      {/* Móvil: comportamiento original (expande desde el ícono) */}
+      <form
+        onSubmit={manejarEnvio}
+        className={`absolute right-0 top-1/2 flex -translate-y-1/2 items-center overflow-hidden rounded-full border bg-white shadow-sm transition-all duration-300 ease-out sm:hidden ${
+          abierto ? "w-64 border-gray-200 opacity-100" : "w-0 border-transparent opacity-0"
         }`}
       >
         <input
@@ -113,13 +155,12 @@ function BuscadorNavbar() {
         )}
       </form>
 
-      {/* Ícono que abre/cierra la barra; queda invisible pero ocupa
-          espacio para no mover el resto del layout cuando la barra se abre */}
+      {/* Ícono: visible sólo en móvil (esconde en escritorio porque ahí está la barra) */}
       <button
         type="button"
         onClick={() => setAbierto((prev) => !prev)}
         aria-label="Buscar"
-        className={`text-gray-600 transition hover:text-brand-green-400 ${
+        className={`text-gray-600 transition hover:text-brand-green-400 sm:hidden ${
           abierto ? "invisible" : "visible"
         }`}
       >
@@ -130,6 +171,8 @@ function BuscadorNavbar() {
 }
 
 export default function Navbar() {
+  const { totalItems } = useCarrito();
+
   return (
     <>
       {/* Barra de anuncio */}
@@ -139,7 +182,7 @@ export default function Navbar() {
 
       {/* Navbar principal, estilo PepsiCo: limpio, en fila horizontal */}
       <header className="relative w-full border-b border-gray-200 bg-white">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-8">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-8">
           <Link href="/" className="shrink-0 py-4">
             <Image
               src="/images/logowebcolorverde.png"
@@ -150,7 +193,7 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="flex flex-1 items-center gap-7">
+          <div className="flex flex-1 items-center gap-6">
             {secciones.map((seccion) => (
               <NavItem key={seccion.href} {...seccion} />
             ))}
@@ -158,12 +201,18 @@ export default function Navbar() {
 
           <div className="flex shrink-0 items-center gap-5">
             <BuscadorNavbar />
-            <button aria-label="Carrito" className="text-gray-600 hover:text-brand-green-400">
+            <Link
+              href="/carrito"
+              aria-label="Carrito"
+              className="relative text-gray-600 hover:text-brand-green-400"
+            >
               <ShoppingCart className="h-5 w-5" />
-            </button>
-            <button className="rounded-full bg-brand-green-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-green-400">
-              Contactar un asesor
-            </button>
+              {totalItems > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-brand-green-500 text-[10px] font-semibold text-white">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
           </div>
         </nav>
       </header>
