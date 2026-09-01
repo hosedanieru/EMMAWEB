@@ -6,12 +6,18 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Leaf } from "lucide-react";
 import { useLocale } from "@/context/LocaleContext";
 
+// Estas rutas apuntan a los mismos archivos que usa el catálogo. Antes había
+// una segunda copia en /images/products/ que era byte a byte idéntica: cinco
+// PNG de más de 20 MB duplicados, 113 MB de más en el repositorio y en cada
+// despliegue. Peor que el peso: eran dos copias que podían quedar desfasadas,
+// y el home habría seguido mostrando la foto vieja de un producto ya
+// actualizado sin que nadie entendiera por qué.
 const slidesBase = [
-  { id: 1, imagen: "/images/products/arroz.png", colorHex: "#19B5DC" },
-  { id: 2, imagen: "/images/products/lenteja.png", colorHex: "#A67C52" },
-  { id: 3, imagen: "/images/products/frijol.png", colorHex: "#8B1E3F" },
-  { id: 4, imagen: "/images/products/garbanzo.png", colorHex: "#D2B48C" },
-  { id: 5, imagen: "/images/products/maiz.png", colorHex: "#F28C38" },
+  { id: 1, imagen: "/images/arroz-500g-frontal.png", colorHex: "#19B5DC" },
+  { id: 2, imagen: "/images/lenteja-500g-frontal.png", colorHex: "#A67C52" },
+  { id: 3, imagen: "/images/frijolradical-500g-frontal.png", colorHex: "#8B1E3F" },
+  { id: 4, imagen: "/images/garbanzo-500g-frontal.png", colorHex: "#D2B48C" },
+  { id: 5, imagen: "/images/maiz-500g-frontal.png", colorHex: "#F28C38" },
 ];
 
 const DURACION_MS = 7000;

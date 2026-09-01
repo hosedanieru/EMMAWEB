@@ -91,7 +91,7 @@ export default function FormularioProducto({
 
       <div>
         <label htmlFor="imagen" className="mb-1 block text-sm font-medium text-brand-ink">
-          Ruta de la imagen (ej: /images/products/arroz.png)
+          Ruta de la imagen (ej: /images/arroz-500g-frontal.png)
         </label>
         <div className="flex items-start gap-3">
           <input
