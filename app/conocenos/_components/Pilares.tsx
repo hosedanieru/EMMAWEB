@@ -1,51 +1,47 @@
-import { Target, Users, Heart, Zap, Eye } from 'lucide-react';
+"use client";
 
-const valores = [
-  { icon: Target, titulo: 'Intrépido', descripcion: 'Persistimos hasta alcanzar metas imposibles.' },
-  { icon: Users, titulo: 'Emprendedor', descripcion: 'Unimos talentos para identificar y resolver tus necesidades.' },
-  { icon: Heart, titulo: 'Solidario', descripcion: 'Trabajamos unidos con el objetivo de llevar bienestar al hogar.' },
-  { icon: Zap, titulo: 'Entusiasta', descripcion: 'Resiliencia y actitud positiva ante cada desafío diario.' },
-  { icon: Eye, titulo: 'Visionario', descripcion: 'Acción e innovación constante para el futuro de tu salud.' },
-];
+import { Target, Users, Heart, Zap, Eye } from 'lucide-react';
+import Reveal from "@/components/Reveal";
+import SectionLabel from "@/components/SectionLabel";
+import { useLocale } from '@/context/LocaleContext';
+
+const iconos = [Target, Users, Heart, Zap, Eye];
 
 export default function ValoresConocenos() {
+  const { t } = useLocale();
+  const valores = t.conocenos.pilares.valores.map((valor, i) => ({
+    ...valor,
+    icon: iconos[i],
+  }));
+
   return (
-    <section className="max-w-6xl mx-auto px-6 py-16">
-      <div className="text-center mb-12">
-        <h2 className="text-2xl md:text-3xl font-bold">Nuestra ADN: Valores con Propósito</h2>
-        <p className="text-gray-600 mt-2">La brújula que guía cada producto que llega a tu mesa.</p>
-      </div>
+    <section className="bg-brand-paper-2 py-[118px]">
+      <div className="mx-auto max-w-[1180px] px-7">
+        <Reveal>
+          <SectionLabel
+            eyebrow={t.conocenos.pilares.eyebrow}
+            title={t.conocenos.pilares.titulo}
+            description={t.conocenos.pilares.descripcion}
+          />
+        </Reveal>
 
-      <div className="space-y-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {valores.slice(0, 3).map((valor) => {
+        <Reveal className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+          {valores.map((valor) => {
             const Icon = valor.icon;
             return (
-              <div key={valor.titulo} className="max-w-sm w-full mx-auto flex flex-col items-center text-center gap-3 p-6 bg-white rounded-xl shadow-sm">
-                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-green-100 text-green-700">
+              <div
+                key={valor.titulo}
+                className="rounded-brand border border-brand-line-2 bg-white p-6 text-center transition-[transform,box-shadow] duration-[.35s] ease-[cubic-bezier(.2,.7,.3,1)] hover:-translate-y-1.5 hover:shadow-[0_26px_50px_-24px_rgba(20,40,20,.4)]"
+              >
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-brand-paper-2 text-brand-green">
                   <Icon size={26} />
                 </div>
-                <h3 className="font-semibold text-lg">{valor.titulo}</h3>
-                <p className="text-gray-600 text-sm">{valor.descripcion}</p>
+                <h3 className="mt-4 text-lg text-brand-green">{valor.titulo}</h3>
+                <p className="mt-1.5 text-sm text-brand-muted">{valor.descripcion}</p>
               </div>
             );
           })}
-        </div>
-
-        <div className="flex justify-center gap-8">
-          {valores.slice(3).map((valor) => {
-            const Icon = valor.icon;
-            return (
-              <div key={valor.titulo} className="max-w-sm w-full flex flex-col items-center text-center gap-3 p-6 bg-white rounded-xl shadow-sm">
-                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-green-100 text-green-700">
-                  <Icon size={26} />
-                </div>
-                <h3 className="font-semibold text-lg">{valor.titulo}</h3>
-                <p className="text-gray-600 text-sm">{valor.descripcion}</p>
-              </div>
-            );
-          })}
-        </div>
+        </Reveal>
       </div>
     </section>
   );

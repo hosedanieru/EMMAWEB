@@ -1,14 +1,20 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #000000;
+  --background: #fcfaf5;
+  --foreground: #1b2718;
+
+  /* Textura decorativa de granos — misma que Emma_web_v2_minimalista_SEO.html
+     (allí se inyecta por JS al cargar; acá va estática porque es puramente
+     visual, sin estado que dependa de runtime). Se usa como
+     background-image en bloques de fondo sólido (split, sostenibilidad). */
+  --doodle: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22340%22%20height%3D%22340%22%20viewBox%3D%220%200%20340%20340%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%220.06%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M40%2060c20-24%2054-24%2074%200-24%2020-54%2020-74%200z%22/%3E%3Cpath%20d%3D%22M77%2044c0%2020%200%2040%200%2060%22/%3E%3Cellipse%20cx%3D%22250%22%20cy%3D%2270%22%20rx%3D%2226%22%20ry%3D%2215%22%20transform%3D%22rotate%28-25%20250%2070%29%22/%3E%3Cpath%20d%3D%22M235%2078c10-6%2022-10%2032-8%22/%3E%3Ccircle%20cx%3D%22150%22%20cy%3D%22170%22%20r%3D%2210%22/%3E%3Ccircle%20cx%3D%22176%22%20cy%3D%22182%22%20r%3D%2210%22/%3E%3Ccircle%20cx%3D%22160%22%20cy%3D%22196%22%20r%3D%2210%22/%3E%3Cpath%20d%3D%22M280%20200c-16%200-28%2012-28%2028%2016%200%2028-12%2028-28z%22/%3E%3Cpath%20d%3D%22M60%20250c14-18%2042-18%2056%200-14%2014-42%2014-56%200z%22/%3E%3Cpath%20d%3D%22M88%20238v34%22/%3E%3C/g%3E%3C/svg%3E");
 }
 
 @theme {
   /* Tipografía */
   --font-sans: var(--font-poppins), sans-serif;
-  --font-accent: var(--font-sansita), sans-serif;
+  --font-accent: "Sansita One", cursive;
 
   /* Paleta principal — Verdes */
   --color-brand-green-100: #A8D5A2;
@@ -37,13 +43,31 @@
   --color-brand-gold-300: #F0C419;
   --color-brand-gold-400: #D4A017;
   --color-brand-gold-500: #A67C00;
+
+  /* Paleta de referencia (Emma_web_v2_minimalista_SEO) — tokens calcados
+     1:1 de las variables :root del diseño objetivo. Se usan a medida que
+     se van reemplazando las secciones visuales, en paralelo a la paleta
+     brand-* anterior. */
+  --color-brand-green: #1D4B24;
+  --color-brand-green-2: #2E7D3B;
+  --color-brand-green-deep: #123018;
+  --color-brand-orange: #F18E19;
+  --color-brand-orange-d: #D9741B;
+  --color-brand-paper: #FCFAF5;
+  --color-brand-paper-2: #F4F1E8;
+  --color-brand-ink: #1b2718;
+  --color-brand-muted: #6a7563;
+  --color-brand-line: rgba(20, 40, 20, 0.10);
+  --color-brand-line-2: rgba(20, 40, 20, 0.06);
+  --radius-brand: 20px;
+
+  /* Animación "floaty" de la imagen del hero — ±14px, 7s, ease-in-out */
+  --animate-floaty: floaty 7s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #2D6B2D;
-    --foreground: #ededed;
-  }
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
 }
 
 body {
@@ -54,9 +78,9 @@ body {
 }
 
 h1, h2, h3 {
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -65,4 +89,59 @@ h1, h2, h3 {
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* ================= Reveal on scroll =================
+   Igual que en Emma_web_v2_minimalista_SEO.html: se activa agregando la
+   clase "in" (ver components/Reveal.tsx, que usa IntersectionObserver
+   con threshold .12, igual que el script de referencia). */
+.reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: 0.8s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.reveal.in {
+  opacity: 1;
+  transform: none;
+}
+
+/* ================= Botones (referencia diseño v2) ================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.9rem 1.7rem;
+  border-radius: 100px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: 0.28s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.btn-primary {
+  background: var(--color-brand-orange);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--color-brand-orange-d);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 30px -12px rgba(217, 116, 27, 0.7);
+}
+.btn-outline {
+  background: transparent;
+  color: var(--color-brand-green);
+  border-color: var(--color-brand-line);
+}
+.btn-outline:hover {
+  border-color: var(--color-brand-green);
+  background: var(--color-brand-green);
+  color: #fff;
+}
+.btn-wa {
+  background: #25d366;
+  color: #fff;
+}
+.btn-wa:hover {
+  background: #1da851;
+  transform: translateY(-2px);
 }

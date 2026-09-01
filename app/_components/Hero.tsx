@@ -4,50 +4,36 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Leaf } from "lucide-react";
+import { useLocale } from "@/context/LocaleContext";
 
-const slides = [
-  {
-    id: 1,
-    imagen: "/images/products/arroz.png",
-    titulo: "Arroz",
-    colorHex: "#19B5DC",
-  },
-  {
-    id: 2,
-    imagen: "/images/products/lenteja.png",
-    titulo: "Lenteja",
-    colorHex: "#A67C52",
-  },
-  {
-    id: 3,
-    imagen: "/images/products/frijol.png",
-    titulo: "Frijol Radical",
-    colorHex: "#8B1E3F",
-  },
-  {
-    id: 4,
-    imagen: "/images/products/garbanzo.png",
-    titulo: "Garbanzos",
-    colorHex: "#D2B48C",
-  },
-  {
-    id: 5,
-    imagen: "/images/products/maiz.png",
-    titulo: "Maíz Pira",
-    colorHex: "#F28C38",
-  },
+const slidesBase = [
+  { id: 1, imagen: "/images/products/arroz.png", colorHex: "#19B5DC" },
+  { id: 2, imagen: "/images/products/lenteja.png", colorHex: "#A67C52" },
+  { id: 3, imagen: "/images/products/frijol.png", colorHex: "#8B1E3F" },
+  { id: 4, imagen: "/images/products/garbanzo.png", colorHex: "#D2B48C" },
+  { id: 5, imagen: "/images/products/maiz.png", colorHex: "#F28C38" },
 ];
 
 const DURACION_MS = 7000;
 
 export default function Hero() {
+  const { t } = useLocale();
   const [indice, setIndice] = useState(0);
   const [pausado, setPausado] = useState(false);
 
+  const slides = slidesBase.map((slide, i) => ({
+    ...slide,
+    titulo: t.home.heroSlides[i].titulo,
+  }));
+
   useEffect(() => {
     if (pausado) return;
+    // slidesBase y no slides: son la misma longitud, pero slides se
+    // reconstruye en cada render (depende del idioma) mientras que slidesBase
+    // es una constante del módulo. Usar la constante deja claro que el
+    // intervalo no necesita recrearse y evita depender de un valor cambiante.
     const intervalo = window.setInterval(() => {
-      setIndice((prev) => (prev + 1) % slides.length);
+      setIndice((prev) => (prev + 1) % slidesBase.length);
     }, DURACION_MS);
     return () => window.clearInterval(intervalo);
   }, [pausado]);
@@ -78,9 +64,23 @@ export default function Hero() {
 
   function svgTextPattern(text: string, colorRgba: string) {
     const upper = text.toUpperCase();
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='1 1 1200 300'>` +
-      Array.from({length:6}).map((_,i)=>
-        `<text x='50%' y='${30 + i*50}' dominant-baseline='middle' text-anchor='middle' font-family='Inter, Arial, sans-serif' font-weight='800' font-size='80' fill='${colorRgba}'>${upper}</text>`
+    // La palabra se repite VARIAS VECES pegada a sí misma (sin espacio) en
+    // cada línea, en vez de depender de que el ancho del tile coincida con
+    // el ancho del texto — así nunca queda un hueco en blanco entre una
+    // repetición y la siguiente, sin importar qué tan corto o largo sea el
+    // nombre del producto en cada idioma.
+    const repetido = upper.repeat(4);
+    // Ojo: los atributos van con COMILLAS DOBLES a propósito.
+    // encodeURIComponent NO escapa la comilla simple ('), así que si el SVG
+    // usa comillas simples, esas comillas sobreviven intactas dentro del
+    // data URI — y como el CSS de afuera envuelve la URL en
+    // url('...'), el navegador corta la URL en la primera comilla que
+    // encuentra (justo después de xmlns=) y el background-image entero
+    // queda inválido y se ignora en silencio. Con comillas dobles,
+    // encodeURIComponent sí las convierte a %22 y no hay conflicto.
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300">` +
+      Array.from({length:3}).map((_,i)=>
+        `<text x="0" y="${50 + i*100}" dominant-baseline="middle" text-anchor="start" font-family="Poppins, Arial, sans-serif" font-weight="800" font-size="90" fill="${colorRgba}">${repetido}</text>`
       ).join('') + `</svg>`;
     return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
@@ -118,26 +118,32 @@ export default function Hero() {
               className={`absolute inset-x-0 top-0 h-1/2`}
             />
 
-            {/* Patrón repetido con el nombre del producto */}
-            <div
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `url('${svgTextPattern(
-                  slideActual.titulo,
-                  hexToRgba(slideActual.colorHex, 0.14)
-                )}')`,
-                backgroundRepeat: 'repeat',
-                backgroundSize: '420px 220px',
-                backgroundPosition: '0 0',
-                transform: 'rotate(-12deg)',
-                opacity: 1,
-              }}
-            />
-
             {/* Bottom: color sólido */}
             <div
               style={{ backgroundColor: slideActual.colorHex }}
               className={`absolute inset-x-0 bottom-0 h-1/2`}
+            />
+
+            {/* Patrón repetido con el nombre del producto: va ENCIMA de las
+                dos franjas de color (para cubrir todo el alto, no solo la
+                mitad de arriba) pero SIEMPRE detrás de la imagen del
+                producto, que vive en un wrapper aparte más abajo en el DOM.
+                Relleno de un tono más claro del mismo color (nunca blanco),
+                inclinado y repitiéndose en mosaico bien apretado para cubrir
+                todo el fondo. Sobredimensionado (-inset-1/4) para que al
+                girar siga tapando las esquinas del contenedor. */}
+            <div
+              className="pointer-events-none absolute -inset-1/4"
+              style={{
+                backgroundImage: `url('${svgTextPattern(
+                  slideActual.titulo,
+                  hexToRgba(lightenHex(slideActual.colorHex, 0.35), 0.55)
+                )}')`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: '800px 200px',
+                backgroundPosition: '0 0',
+                transform: 'rotate(-12deg)',
+              }}
             />
 
             {/* Contenido: mismo padding vertical de antes, pero ahora
@@ -145,19 +151,9 @@ export default function Hero() {
                 fondo transparente */}
             <div className="relative py-10">
               <div className="relative h-[420px] w-full sm:h-[520px]">
-                {/* Texto grande de fondo */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
-                  <span className="text-5xl font-black uppercase leading-[0.95] text-white/95 drop-shadow-sm sm:text-7xl">
-                    {slideActual.titulo.split(" ")[0]}
-                  </span>
-                  <span className="text-5xl font-black uppercase leading-[0.95] text-white/95 drop-shadow-sm sm:text-7xl">
-                    {slideActual.titulo.split(" ").slice(1).join(" ")}
-                  </span>
-                </div>
-
                 {/* Imagen del producto, flotando sobre la transición de color */}
                 <div className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 justify-center">
-                  <div className="relative h-56 w-56 sm:h-72 sm:w-72">
+                  <div className="relative h-72 w-72 sm:h-[420px] sm:w-[420px]">
                     <Image
                       src={slideActual.imagen}
                       alt={slideActual.titulo}
@@ -173,24 +169,24 @@ export default function Hero() {
                 {/* Flechas */}
                 <button
                   onClick={irAnterior}
-                  aria-label="Anterior"
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 shadow-md transition hover:scale-110 hover:bg-white"
+                  aria-label={t.home.heroPrevAria}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-brand-ink shadow-md transition-[transform,background-color] duration-[.28s] hover:scale-110 hover:bg-white"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <button
                   onClick={irSiguiente}
-                  aria-label="Siguiente"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-gray-700 shadow-md transition hover:scale-110 hover:bg-white"
+                  aria-label={t.home.heroNextAria}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 text-brand-ink shadow-md transition-[transform,background-color] duration-[.28s] hover:scale-110 hover:bg-white"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
 
       {/* Sellos inferiores: fijos en las esquinas del Hero */}
-      <div className="absolute left-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 shadow">
-        <Leaf className="h-3.5 w-3.5 text-brand-green-400" />
-        <span>Del campo a tu casa</span>
+      <div className="absolute left-4 bottom-4 z-40 flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-brand-ink shadow">
+        <Leaf className="h-3.5 w-3.5 text-brand-green" />
+        <span>{t.home.heroBadge}</span>
       </div>
 
       <div className="absolute right-4 bottom-4 z-40">
@@ -211,7 +207,7 @@ export default function Hero() {
                   <button
                     key={slide.id}
                     onClick={() => setIndice(i)}
-                    aria-label={`Ver ${slide.titulo}`}
+                    aria-label={t.home.heroVerAria(slide.titulo)}
                     className={`h-2 rounded-full transition-all duration-300 ${
                       i === indice
                         ? "w-8 bg-white"

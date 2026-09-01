@@ -14,6 +14,7 @@ datasource db {
 
 enum Role {
   ADMIN
+  FACTURACION
   EDITOR
   VIEWER
 }
@@ -26,6 +27,25 @@ model User {
   role      Role     @default(EDITOR)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum TipoContrato {
+  TIEMPO_COMPLETO
+  MEDIO_TIEMPO
+  TEMPORAL
+  PRACTICA
+}
+
+model Vacante {
+  id          String       @id @default(cuid())
+  titulo      String
+  area        String
+  ubicacion   String
+  tipo        TipoContrato @default(TIEMPO_COMPLETO)
+  descripcion String
+  activa      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model MensajeContacto {
@@ -48,60 +68,101 @@ model Categoria {
 }
 
 model Producto {
-  id          String    @id @default(cuid())
+  id          String  @id @default(cuid())
   nombre      String
-  slug        String    @unique
+  slug        String  @unique
   descripcion String
   imagen      String
-  activo      Boolean   @default(true)
+  activo      Boolean @default(true)
+  destacado   Boolean @default(false)
 
   categoriaId String
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
 
   presentaciones Presentacion[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Presentacion {
-  id                 String   @id @default(cuid())
-  cantidad           Decimal  // peso neto de CADA unidad: 500, 460, 10, 50
-  unidad             String   // "g" o "kg"
-  unidadesPorPaquete Int      @default(1)  // 1 = suelto, 25 = caja x25, etc.
-  precio             Decimal  // precio TAT del paquete completo
-  stock              Int      @default(0)
-  activo             Boolean  @default(true)
+  id                 String  @id @default(cuid())
+  cantidad           Decimal // peso neto de CADA unidad: 500, 460, 10, 50
+  unidad             String // "g" o "kg"
+  unidadesPorPaquete Int     @default(1) // 1 = suelto, 25 = caja x25, etc.
+  precio             Decimal // precio TAT del paquete completo
+  stock              Int     @default(0)
+  activo             Boolean @default(true)
 
   productoId String
   producto   Producto @relation(fields: [productoId], references: [id])
+
+  itemsPedido ItemPedido[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
+enum EstadoPedido {
+  PENDIENTE_REVISION
+  APROBADO
+  RECHAZADO
+}
+
 model Pedido {
   id              String       @id @default(cuid())
-  referencia      String?      @unique   // se llena cuando se integre Wompi
+  referencia      String?      @unique
   nombreCliente   String
   correoCliente   String
   telefonoCliente String
   direccion       String
   ciudad          String
-  estado          String       @default("pendiente") // pendiente | pagado | fallido | cancelado
-  total           Decimal
-  items           ItemPedido[]
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  estado          EstadoPedido @default(PENDIENTE_REVISION)
+
+  // El total es lo que se cobra: subtotal de productos + envío. Se guardan los
+  // tres para que la factura se pueda reconstruir sin recalcular nada, y para
+  // que un cambio futuro en las tarifas no altere lo que ya se cobró.
+  subtotal   Decimal @default(0)
+  costoEnvio Decimal @default(0)
+  total      Decimal
+
+  items ItemPedido[]
+
+  // Constancia de la autorización de tratamiento de datos (Ley 1581 de 2012):
+  // el titular tiene que autorizar de forma expresa, y la empresa tiene que
+  // poder demostrar cuándo lo hizo. Nulo = pedidos anteriores a la casilla.
+  autorizaDatosEn DateTime?
+
+  // Datos de pago: se llenan cuando Wompi confirma el pago por webhook.
+  // pagadoEn nulo = todavía no ha pagado (aunque ya esté APROBADO en stock).
+  pagadoEn           DateTime?
+  wompiTransactionId String?   @unique
+  metodoPago         String?
+  datosPago          Json?
+
+  // Marca los pedidos que necesitan que una persona los mire: sobreventa,
+  // pago sobre un pedido ya cancelado, monto que no cuadra. Antes esto solo
+  // salía por console.error, que en producción no lo lee nadie.
+  requiereRevision Boolean @default(false)
+  motivoRevision   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Las dos listas del panel filtran por estas columnas y ordenan por fecha.
+  @@index([estado, pagadoEn])
+  @@index([pagadoEn])
+  @@index([requiereRevision])
 }
 
 model ItemPedido {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   pedidoId       String
-  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  pedido         Pedido       @relation(fields: [pedidoId], references: [id])
   presentacionId String
-  nombreProducto String   // snapshot
-  etiqueta       String   // snapshot: "500g" / "Caja x25 500g"
-  precioUnitario Decimal  // snapshot
+  presentacion   Presentacion @relation(fields: [presentacionId], references: [id])
+  nombreProducto String
+  etiqueta       String
+  precioUnitario Decimal
   cantidad       Int
 }

@@ -1,3 +1,8 @@
+// Prisma 7 ya no carga el .env solo. El CLI lo hace a través de
+// prisma.config.ts, pero cuando este archivo se corre directo con tsx
+// (npm run seed) nadie lo carga y DATABASE_URL llega vacío: la conexión
+// falla con un "client password must be a string" bastante despistante.
+import 'dotenv/config';
 import { prisma } from '../lib/prisma';
 
 type PresentacionSeed = {
@@ -132,19 +137,46 @@ async function main() {
       },
     });
 
-    // Se borran y recrean las presentaciones de este producto en cada corrida
-    // (a diferencia del upsert por slug de Producto/Categoria, Presentacion no
-    // tiene un campo único natural para hacer upsert individual).
-    await prisma.presentacion.deleteMany({
+    // Antes esto borraba y recreaba todas las presentaciones del producto en
+    // cada corrida. Eso tenía dos problemas graves:
+    //
+    //   1. Reventaba en cuanto existía un pedido. ItemPedido apunta a
+    //      Presentacion con llave foránea, así que el deleteMany fallaba con
+    //      un error de restricción y dejaba el seed a medias.
+    //   2. Borraba el stock. Las presentaciones se recreaban con stock 0, así
+    //      que cada corrida del seed vaciaba el inventario que el equipo
+    //      hubiera cargado desde el panel.
+    //
+    // Ahora se emparejan por su clave natural (medida + unidad + unidades por
+    // paquete) y solo se actualiza el precio. El stock no se toca nunca: eso
+    // lo maneja el panel, no el seed.
+    const existentes = await prisma.presentacion.findMany({
       where: { productoId: producto.id },
     });
 
-    await prisma.presentacion.createMany({
-      data: p.presentaciones.map((pres) => ({
-        ...pres,
-        productoId: producto.id,
-      })),
-    });
+    for (const pres of p.presentaciones) {
+      const yaExiste = existentes.find(
+        (e) =>
+          Number(e.cantidad) === pres.cantidad &&
+          e.unidad === pres.unidad &&
+          e.unidadesPorPaquete === pres.unidadesPorPaquete
+      );
+
+      if (yaExiste) {
+        await prisma.presentacion.update({
+          where: { id: yaExiste.id },
+          data: { precio: pres.precio },
+        });
+      } else {
+        await prisma.presentacion.create({
+          data: { ...pres, productoId: producto.id },
+        });
+      }
+    }
+
+    // Las presentaciones que estén en la base pero no en esta lista se dejan
+    // como estén: pueden haberlas creado desde el panel a propósito, y no le
+    // toca al seed decidir que sobran.
   }
 }
 

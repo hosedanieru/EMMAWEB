@@ -1,30 +1,40 @@
+"use client";
+
 import { Target, Rocket } from 'lucide-react';
+import Reveal from "@/components/Reveal";
+import SectionLabel from "@/components/SectionLabel";
+import { useLocale } from '@/context/LocaleContext';
 
 export default function NuestraEstrategia() {
-  return (
-    <section className="max-w-6xl mx-auto px-4 py-16">
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Misión */}
-        <div className="p-8 bg-green-50 rounded-2xl border border-green-100">
-          <div className="w-12 h-12 bg-green-600 text-white rounded-lg flex items-center justify-center mb-6">
-            <Target size={24} />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Misión</h2>
-          <p className="text-gray-600 leading-relaxed">
-            Proporcionar bienestar a través de una amplia variedad de productos alimenticios con altos estándares de calidad e inocuidad. Nos dedicamos a fomentar un estilo de vida sostenible, llevando el campo directamente a la casa de nuestros consumidores[cite: 1].
-          </p>
-        </div>
+  const { t } = useLocale();
 
-        {/* Visión */}
-        <div className="p-8 bg-green-50 rounded-2xl border border-green-100">
-          <div className="w-12 h-12 bg-green-600 text-white rounded-lg flex items-center justify-center mb-6">
-            <Rocket size={24} />
+  return (
+    <section className="py-[118px]">
+      <div className="mx-auto max-w-[1180px] px-7">
+        <Reveal>
+          <SectionLabel
+            eyebrow={t.conocenos.estrategia.eyebrow}
+            title={t.conocenos.estrategia.titulo}
+          />
+        </Reveal>
+
+        <Reveal className="grid gap-[50px] md:grid-cols-2">
+          <div>
+            <Target className="h-8 w-8 stroke-[1.5] text-brand-green" />
+            <h3 className="mb-3 mt-4 text-[1.3rem] text-brand-green">{t.conocenos.estrategia.mision.titulo}</h3>
+            <p className="leading-relaxed text-brand-muted">
+              {t.conocenos.estrategia.mision.parrafo}
+            </p>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Nuestra Visión</h2>
-          <p className="text-gray-600 leading-relaxed">
-            Ser líderes en el mercado de alimentos en Colombia y el mundo, ofreciendo soluciones innovadoras, saludables y sostenibles que inspiren a las personas a adoptar un estilo de vida consciente, contribuyendo a la salud de las generaciones futuras[cite: 1].
-          </p>
-        </div>
+
+          <div>
+            <Rocket className="h-8 w-8 stroke-[1.5] text-brand-green" />
+            <h3 className="mb-3 mt-4 text-[1.3rem] text-brand-green">{t.conocenos.estrategia.vision.titulo}</h3>
+            <p className="leading-relaxed text-brand-muted">
+              {t.conocenos.estrategia.vision.parrafo}
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

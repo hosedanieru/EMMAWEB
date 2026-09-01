@@ -1,28 +1,39 @@
 import { prisma } from "@/lib/prisma";
-import ProductoCard from "./_components/ProductoCard";
+import FiltroProductos from "./_components/FiltroProductos";
 
-export default async function ProductosPage() {
+export default async function ProductosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+
   const productos = await prisma.producto.findMany({
     where: { activo: true },
-    include: { categoria: true },
+    include: {
+      categoria: true,
+      presentaciones: {
+        where: { activo: true },
+        orderBy: { precio: "asc" },
+        take: 1,
+      },
+    },
     orderBy: { nombre: "asc" },
   });
 
-  return (
-    <main className="mx-auto max-w-7xl px-6 py-16">
-      <h1 className="mb-12 text-center">Nuestros Productos</h1>
+  const productosConPrecio = productos.map((producto) => {
+    const { presentaciones, ...resto } = producto;
+    return {
+      ...resto,
+      precioDesde: presentaciones[0] ? Number(presentaciones[0].precio) : null,
+    };
+  });
 
-      {productos.length === 0 ? (
-        <p className="text-center text-neutral-500">
-          Aún no hay productos disponibles.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {productos.map((producto) => (
-            <ProductoCard key={producto.id} producto={producto} />
-          ))}
-        </div>
-      )}
+  return (
+    <main className="bg-brand-paper py-[118px]">
+      <div className="mx-auto max-w-[1180px] px-7">
+        <FiltroProductos productos={productosConPrecio} busquedaInicial={q ?? ""} />
+      </div>
     </main>
   );
 }

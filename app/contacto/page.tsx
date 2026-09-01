@@ -1,26 +1,61 @@
-import FormularioContacto from './_components/FormularioContacto';
-import InfoContacto from './_components/InfoContacto';
+import { prisma } from "@/lib/prisma";
+import Reveal from "@/components/Reveal";
+import Encabezado from "./_components/Encabezado";
+import InfoContacto from "./_components/InfoContacto";
+import Consultas from "./_components/Consultas";
+import Vacantes from "./_components/Vacantes";
+import Proveedores from "./_components/Proveedores";
 
-export default function ContactoPage() {
+export const metadata = {
+  title: "Contacto | Emma Colombia",
+  description:
+    "Escríbenos por WhatsApp o correo: consultas y pedidos, vacantes de empleo y registro de proveedores.",
+};
+
+// Esta página absorbió lo que antes era /trabaja-con-nosotros. Las dos
+// resolvían el mismo problema —hablar con la empresa— y mantenerlas
+// separadas obligaba a adivinar por cuál entrar.
+//
+// Ya no hay formularios: los tres que había (contacto, postulación y
+// proveedores) dependían de credenciales SMTP del correo institucional que
+// TI no puede entregar, y el de contacto además solo guardaba en una tabla
+// que nadie leía. Ahora todo son enlaces directos a WhatsApp y al correo,
+// con el mensaje ya redactado. Ver lib/contacto.ts.
+
+// Sin esto, Next.js prerenderiza la página como estática en el build y una
+// vacante publicada después desde el panel de Admin no aparecería hasta el
+// próximo despliegue.
+export const dynamic = "force-dynamic";
+
+export default async function ContactoPage() {
+  const vacantes = await prisma.vacante.findMany({
+    where: { activa: true },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      titulo: true,
+      area: true,
+      ubicacion: true,
+      tipo: true,
+      descripcion: true,
+    },
+  });
+
   return (
-    <div
-      className="bg-[url('/images/paisajeemma.png')] bg-cover bg-center bg-no-repeat"
-    >
-      <main className="max-w-6xl mx-auto px-4 py-16">
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 md:p-12 shadow-lg">
-          <div className="text-center mb-12">
-            <h1 className="text-black md:text-4xl font-bold">Contáctanos</h1>
-            <p className="text-gray-900 mt-2">
-              Escríbenos y te responderemos a la brevedad.
-            </p>
-          </div>
+    <main className="bg-brand-paper py-[118px]">
+      <div className="mx-auto max-w-[1180px] px-7">
+        <Encabezado />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <InfoContacto />
-            <FormularioContacto />
-          </div>
+        <Reveal className="mb-8">
+          <InfoContacto />
+        </Reveal>
+
+        <div className="divide-y divide-brand-line-2">
+          <Consultas />
+          <Vacantes vacantes={vacantes} />
+          <Proveedores />
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

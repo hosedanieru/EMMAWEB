@@ -1,39 +1,42 @@
-export default function HeroSostenibilidad() {
-  return (
-    <section className="relative overflow-hidden bg-brand-olive-400 py-20 px-6">
-      {/* Marca de agua decorativa */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none select-none absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10rem] md:text-[14rem] font-extrabold leading-none text-brand-olive-300/30"
-      >
-        #Sostenibilidad
-      </span>
+"use client";
 
-      <div className="relative mx-auto max-w-3xl text-center">
-        <h1 className="text-white">
-          <span className="block text-4xl md:text-5xl font-extrabold">
-            En Emma,
-          </span>
-          <span className="mt-1 block text-2xl md:text-3xl font-light tracking-wide">
-            EL FUTURO ES SOSTENIBLE
+import Image from "next/image";
+import { useLocale } from "@/context/LocaleContext";
+
+export default function HeroSostenibilidad() {
+  const { t } = useLocale();
+
+  return (
+    <section className="relative overflow-hidden bg-brand-green px-6 py-24">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 opacity-50"
+        style={{ backgroundImage: "var(--doodle)", backgroundSize: "380px" }}
+      />
+
+      <div className="relative z-[2] mx-auto max-w-3xl text-center">
+        <span className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-white">
+          {t.sostenibilidadPage.eyebrow}
+        </span>
+        <h1 className="mt-3 text-white">
+          <span className="block text-4xl md:text-5xl">{t.sostenibilidadPage.tituloPre}</span>
+          <span className="mt-1 block text-2xl font-normal tracking-wide text-white/80 md:text-3xl">
+            {t.sostenibilidadPage.tituloPost}
           </span>
         </h1>
 
         <p className="mx-auto mt-5 max-w-xl text-white/90">
-          Con nuestra flota eléctrica y planta con energía solar, trabajamos
-          por un futuro más limpio y responsable con el planeta.
+          {t.sostenibilidadPage.parrafo}
         </p>
 
-        <div className="relative mx-auto mt-10 max-w-xl">
-          <div className="mx-auto mb-2 h-0 w-0 border-x-8 border-x-transparent border-b-[14px] border-b-brand-olive-500" />
-
-          <img
+        <div className="relative mx-auto mt-10 max-w-xl overflow-hidden rounded-brand shadow-lg">
+          <Image
             src="/images/flotacarroselectricos.png"
             alt="Flota eléctrica de Emma en carretera"
-            className="w-full rounded-2xl shadow-lg"
+            width={1000}
+            height={600}
+            className="w-full"
           />
-
-          <div className="mx-auto mt-2 h-0 w-0 border-x-8 border-x-transparent border-t-[14px] border-t-brand-olive-500" />
         </div>
       </div>
     </section>

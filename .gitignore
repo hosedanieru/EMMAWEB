@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# La plantilla SÍ va al repositorio: es la única constancia de qué variables
+# hace falta llenar. La regla .env* de arriba también la excluía, así que un
+# clon nuevo quedaba sin referencia de nada.
+!.env.example
 
 # vercel
 .vercel

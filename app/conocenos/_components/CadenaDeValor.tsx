@@ -1,48 +1,35 @@
+"use client";
+
+import Reveal from "@/components/Reveal";
+import SectionLabel from "@/components/SectionLabel";
+import { useLocale } from "@/context/LocaleContext";
+
+const numeros = ["01", "02", "03", "04"];
+
 export default function CadenaDeValor() {
-  const pasos = [
-    { 
-      nombre: 'COMPRAR', 
-      bgColor: 'bg-[#1b4332]' // Verde oscuro corporativo
-    },
-    { 
-      nombre: 'PRODUCIR', 
-      bgColor: 'bg-[#e67e22]' // Naranja dinámico
-    },
-    { 
-      nombre: 'DISTRIBUIR', 
-      bgColor: 'bg-[#8ac926]' // Verde claro / Lima
-    },
-    { 
-      nombre: 'VENDER', 
-      bgColor: 'bg-[#f3b913]' // Amarillo de marca
-    },
-  ];
+  const { t } = useLocale();
 
   return (
-    <section className="max-w-6xl mx-auto px-10 py-4">
-      <div className="text-center mb-12">
-        <h2 className="text-6xl font-bold text-black mb-6">Nuestra Cadena de Valor</h2>
-        <p className="text-gray-600 text-2xl">Del campo a tu casa, garantizando calidad e inocuidad en cada etapa.</p>
-      </div>
+    <section className="bg-brand-paper-2 py-[118px]">
+      <div className="mx-auto max-w-[1180px] px-7">
+        <Reveal>
+          <SectionLabel
+            eyebrow={t.conocenos.cadena.eyebrow}
+            title={t.conocenos.cadena.titulo}
+            description={t.conocenos.cadena.descripcion}
+          />
+        </Reveal>
 
-      {/* Contenedor de la cadena en formato de flechas secuenciales */}
-      <div className="flex flex-col md:flex-row items-center justify-center w-full gap-2 md:gap-0">
-        {pasos.map((paso, index) => (
-          <div
-            key={paso.nombre}
-            className={`relative flex items-center justify-center text-white font-bold tracking-wider py-5 px-6 w-full md:w-1/4 text-center shadow-sm transition-all duration-300 hover:brightness-105 ${paso.bgColor} ${
-              index !== 0 ? 'md:-ml-0' : ''
-            }`}
-            style={{
-              // Genera la forma de flecha horizontal (chevron) en pantallas medianas en adelante
-              clipPath: 'polygon(0% 0%, calc(100% - 40px) 0%, 100% 50%, calc(100% - 40px) 100%, 0% 100%)'
-            }}
-          >
-            <span className="relative z-60 text-lg md:text-xl drop-shadow">
-              {paso.nombre}
-            </span>
-          </div>
-        ))}
+        <Reveal className="grid grid-cols-2 gap-x-6 gap-y-[34px] text-center lg:grid-cols-4 lg:gap-[26px]">
+          {t.conocenos.cadena.pasos.map((nombre, i) => (
+            <div key={nombre}>
+              <div className="mx-auto mb-[18px] flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-brand-orange font-accent text-[1.1rem] text-brand-orange">
+                {numeros[i]}
+              </div>
+              <h4 className="text-[1.08rem] text-brand-green">{nombre}</h4>
+            </div>
+          ))}
+        </Reveal>
       </div>
     </section>
   );

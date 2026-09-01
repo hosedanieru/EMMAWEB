@@ -1,53 +1,38 @@
-import { Sun, Recycle, FileX } from "lucide-react";
+"use client";
 
-const hitos = [
-  {
-    icon: Sun,
-    title: "Infraestructura Limpia",
-    description:
-      "Nuestra planta funciona con energía solar y contamos con una flota de vehículos eléctricos para la distribución.",
-  },
-  {
-    icon: Recycle,
-    title: "Economía Circular",
-    description:
-      "Optimizamos el uso de nuestros residuos a través de la Logística Inversa, reduciendo el impacto de cada entrega.",
-  },
-  {
-    icon: FileX,
-    title: "Cero Papel",
-    description:
-      'Con nuestra política "No Papper", usamos herramientas tecnológicas para eliminar el consumo de papel en nuestros procesos.',
-  },
-];
+import { Sun, Recycle, FileX } from "lucide-react";
+import { useLocale } from "@/context/LocaleContext";
+
+const iconos = [Sun, Recycle, FileX];
 
 export default function HitosAmbientales() {
+  const { t } = useLocale();
+
   return (
-    <section className="mx-auto max-w-6xl px-6 py-20">
+    <section className="mx-auto max-w-[1180px] px-7 py-[118px]">
       <div className="mx-auto max-w-2xl text-center">
-        <span className="text-sm font-semibold uppercase tracking-widest text-brand-green-500">
-          Nuestros hitos
+        <span className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-brand-orange-d">
+          {t.sostenibilidadPage.hitosEyebrow}
         </span>
-        <h2 className="mt-3 text-3xl md:text-4xl font-bold text-brand-green-500">
-          Comprometidos con el planeta
-        </h2>
+        <h2 className="mt-3 text-brand-green">{t.sostenibilidadPage.hitosTitulo}</h2>
       </div>
 
       <div className="mt-12 grid gap-8 md:grid-cols-3">
-        {hitos.map(({ icon: Icon, title, description }) => (
-          <div
-            key={title}
-            className="rounded-2xl border border-brand-olive-100 bg-white p-8 text-center shadow-sm transition hover:shadow-md"
-          >
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-olive-100">
-              <Icon className="h-8 w-8 text-brand-olive-500" />
+        {t.sostenibilidadPage.hitos.map(({ titulo, descripcion }, i) => {
+          const Icon = iconos[i];
+          return (
+            <div
+              key={titulo}
+              className="rounded-brand border border-brand-line-2 bg-white p-8 text-center transition-[transform,box-shadow] duration-[.35s] ease-[cubic-bezier(.2,.7,.3,1)] hover:-translate-y-1.5 hover:shadow-[0_26px_50px_-24px_rgba(20,40,20,.4)]"
+            >
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-paper-2">
+                <Icon className="h-8 w-8 text-brand-green" />
+              </div>
+              <h3 className="mt-5 text-lg text-brand-green">{titulo}</h3>
+              <p className="mt-3 text-sm text-brand-muted">{descripcion}</p>
             </div>
-            <h3 className="mt-5 text-lg font-bold text-brand-green-500">
-              {title}
-            </h3>
-            <p className="mt-3 text-sm text-neutral-600">{description}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
