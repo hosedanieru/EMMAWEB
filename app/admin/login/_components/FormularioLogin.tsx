@@ -34,7 +34,19 @@ export default function FormularioLogin({ callbackUrl }: { callbackUrl: string }
 
     if (!resultado || resultado.error) {
       setEstadoEnvio('error');
-      setMensajeError('Correo o contraseña incorrectos');
+      // Auth.js devuelve el `code` de la subclase de error que lanzó
+      // authorize(). Sin distinguirlo, quedarse sin intentos se veía igual
+      // que una contraseña mala y la persona seguía probando claves buenas.
+      const codigo = (resultado as { code?: string } | undefined)?.code ?? '';
+      const sinIntentos =
+        codigo.includes('limite_intentos') ||
+        (resultado?.error ?? '').includes('limite_intentos');
+
+      setMensajeError(
+        sinIntentos
+          ? 'Demasiados intentos fallidos. Espera 15 minutos antes de volver a intentar.'
+          : 'Correo o contraseña incorrectos'
+      );
       return;
     }
 

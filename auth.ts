@@ -1,8 +1,18 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { consumir, reiniciar, ipDePeticion } from "@/lib/rate-limit";
+
+// Sin esto, quedarse sin intentos daba exactamente el mismo mensaje que una
+// contraseña equivocada: "Correo o contraseña incorrectos". La persona seguía
+// probando claves buenas sin entender por qué ninguna servía. Auth.js
+// normaliza cualquier error de authorize a CredentialsSignin para no filtrar
+// información, pero respeta el `code` de las subclases — que es justo lo que
+// hace falta para distinguir estos dos casos sin revelar si el correo existe.
+export class LimiteIntentosError extends CredentialsSignin {
+  code = "limite_intentos";
+}
 
 // Hash de una contraseña que no le sirve a nadie. Existe para poder correr un
 // bcrypt.compare cuando el correo NO existe: sin esto, la respuesta a un
@@ -21,7 +31,13 @@ const REVALIDAR_CADA_MS = 5 * 60 * 1000;
 // Intentos de login permitidos por ventana. Se cuenta por IP y por correo:
 // la IP frena a quien prueba muchas contraseñas contra muchas cuentas, y el
 // correo frena a quien reparte el ataque entre varias IPs contra una cuenta.
-const LIMITE_INTENTOS = 5;
+//
+// El tope por IP es más alto que el de correo a propósito: en una oficina
+// varias personas del equipo salen por la misma IP, y 5 en total entre todas
+// dejaba a gente honesta afuera. El que de verdad protege una cuenta es el de
+// correo, y ese sí es estricto.
+const LIMITE_POR_IP = 20;
+const LIMITE_POR_CORREO = 5;
 const VENTANA_SEGUNDOS = 15 * 60;
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -51,14 +67,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         // Si cualquiera de los dos contadores se pasó, no se consulta la base
         // ni se corre bcrypt: el intento se descarta antes de gastar nada.
-        const porIp = consumir(`login:ip:${ip}`, LIMITE_INTENTOS, VENTANA_SEGUNDOS);
+        const porIp = consumir(`login:ip:${ip}`, LIMITE_POR_IP, VENTANA_SEGUNDOS);
         const porCorreo = consumir(
           `login:correo:${email}`,
-          LIMITE_INTENTOS,
+          LIMITE_POR_CORREO,
           VENTANA_SEGUNDOS
         );
         if (!porIp.permitido || !porCorreo.permitido) {
-          return null;
+          throw new LimiteIntentosError();
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
