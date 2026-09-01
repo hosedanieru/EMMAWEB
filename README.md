@@ -3,6 +3,11 @@
 Tienda en línea y panel de administración de Compañía Colombiana de Alimentos
 Emma SAS. Next.js 16 (App Router) + PostgreSQL + Prisma 7, pagos con Wompi.
 
+> **¿Vas a desplegar en producción?** Esta guía es para levantar el proyecto en
+> tu máquina. El checklist de producción —rol de base de datos, variables,
+> registro del webhook de Wompi y verificación— está en
+> **[DESPLIEGUE.md](DESPLIEGUE.md)**.
+
 ---
 
 ## 1. Requisitos
@@ -144,10 +149,20 @@ Abre [http://localhost:3000](http://localhost:3000). El panel está en
 | `npm run lint` | Revisa el código |
 | `npm run seed` | Carga/actualiza el catálogo de productos |
 | `npm run crear-admin` | Crea o actualiza un usuario ADMIN |
+| `npm run verificar` | Comprueba la lógica de cobro: redondeo, envío, las dos firmas de Wompi y el límite de intentos |
 
 ---
 
 ## 6. Despliegue
+
+**El checklist completo está en [DESPLIEGUE.md](DESPLIEGUE.md).** Cubre el rol
+de base de datos, todas las variables de entorno, las migraciones, el registro
+del webhook de Wompi y la verificación previa a abrir al público.
+
+Lo que sigue en esta sección es el resumen de los puntos que más se olvidan.
+
+<details>
+<summary>Ver resumen</summary>
 
 ### 6.1 Antes de subir nada
 
@@ -236,6 +251,8 @@ funciona en local — lo único que se pierde es el retorno automático a la
 tienda. Si quieres probar también el retorno, expón el sitio con un túnel
 (ngrok) y pon esa URL pública en `APP_URL`.
 
+</details>
+
 ---
 
 ## 7. Cosas que conviene saber
@@ -259,12 +276,25 @@ código. Todos los envíos están detrás de la bandera `smtpConfigurado`.
 
 ### Datos pendientes de llenar
 
-En `lib/contacto.ts` hay dos campos vacíos a propósito:
+| Dato | Dónde | Qué pasa si no se llena |
+|---|---|---|
+| NIT de la empresa | `lib/empresa.ts` | Las páginas legales muestran un aviso en vez del número |
+| Tarifas y cobertura de envío | `lib/envio.ts` | Se cobran los valores por defecto, puestos según lo que promete el sitio |
+| `horario` | diccionario i18n | Se muestra "Por definir" |
 
-- `correo` — mientras esté vacío, solo se muestran los botones de WhatsApp
-- `horario` — se muestra "Por definir"
+Verifica también que el número de WhatsApp (`573113712834`) y el correo de
+`lib/contacto.ts` sean los correctos.
 
-Verifica también que el número de WhatsApp (`573113712834`) sea el correcto.
+### Cómo funciona el envío
+
+Las zonas, tarifas y umbrales de envío gratis están en `lib/envio.ts`. El
+mismo módulo lo usan el checkout (para mostrarle el costo al cliente antes de
+confirmar) y `/api/pedidos` (para calcular el total real). **El que manda es
+el del servidor**; el del navegador solo evita que la pantalla mienta.
+
+La ciudad es un desplegable, no texto libre: solo se ofrecen las que están en
+alguna zona. Un pedido a una ciudad sin cobertura se rechaza con 409 y se le
+ofrece al cliente coordinar por WhatsApp.
 
 ### Cómo funciona el inventario
 
@@ -272,9 +302,19 @@ El stock **no** se reserva al crear el pedido. Se descuenta cuando Wompi
 confirma el pago por webhook. Un pedido creado y nunca pagado no bloquea
 inventario.
 
-Al crear el pedido sí se valida que haya stock suficiente; si entre la
-creación y el pago se agota, el webhook lo registra en el log como posible
-sobreventa y hay que resolverlo a mano.
+Al crear el pedido sí se valida que haya stock suficiente. Si entre la
+creación y el pago se agota, el pedido queda marcado con `requiereRevision` y
+aparece en rojo arriba de `/admin/pedidos` para que alguien lo resuelva a mano.
+La misma marca se usa cuando alguien paga un pedido ya cancelado o cuando el
+monto de la transacción no coincide con el del pedido.
+
+### Los precios se redondean a peso entero
+
+Varias presentaciones tienen precio con fracción de peso (2047.5, 3659.25),
+porque salen de aplicarle un margen a un costo. `lib/dinero.ts` redondea el
+precio unitario **antes de multiplicar**, para que la factura cuadre al
+verificarla a mano (3 × $2.048 = $6.144) y para que Wompi no reciba un monto
+imposible de pagar en efectivo.
 
 ### Los precios se leen siempre de la base
 
