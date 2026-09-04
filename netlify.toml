@@ -1,0 +1,29 @@
+# Configuración de despliegue en Netlify.
+#
+# Netlify detecta Next.js solo y le aplica su adaptador (OpenNext) sin que haya
+# que instalar ni declarar ningún plugin. Lo que va acá es lo que NO puede
+# adivinar por su cuenta.
+
+[build]
+  # `prisma generate` va explícito y no delegado al postinstall del
+  # package.json. Netlify reutiliza la caché de node_modules entre
+  # despliegues: cuando la caché sirve, npm no reinstala nada y el postinstall
+  # nunca llega a correr. Como el cliente generado vive en /generated/prisma
+  # —fuera de node_modules y excluido del repositorio por .gitignore— el
+  # despliegue siguiente reventaría con "Can't resolve '@/generated/prisma'",
+  # y el error no apunta para nada a la caché.
+  command = "npx prisma generate && npm run build"
+
+  # El adaptador de Netlify parte de la salida estándar de `next build`.
+  publish = ".next"
+
+[build.environment]
+  # Prisma 7 exige Node ^20.19 || ^22.12 || >=24, y Next 16 pide 20.9 o
+  # superior. Sin fijarlo quedamos a merced de la versión que Netlify traiga
+  # por defecto el día del despliegue.
+  NODE_VERSION = "22"
+
+  # Blindaje por si alguien define NODE_ENV=production en el panel: sin esto
+  # npm omitiría las devDependencies, y prisma, typescript, tailwindcss y
+  # eslint-config-next hacen falta para compilar.
+  NPM_FLAGS = "--include=dev"

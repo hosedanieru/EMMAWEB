@@ -34,6 +34,13 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font --
+            La regla apunta al Pages Router (pages/_document.js), donde un
+            <link> de fuente solo aplicaba a una página. En el App Router este
+            head es el de la raíz y sí cubre todo el sitio, así que el aviso
+            es un falso positivo. La alternativa real —next/font— no sirve
+            acá: "Sansita One" no está en su catálogo (ver comentario arriba).
+            Los dominios ya están permitidos en la CSP de next.config.ts. */}
         <link
           href="https://fonts.googleapis.com/css2?family=Sansita+One&display=swap"
           rel="stylesheet"

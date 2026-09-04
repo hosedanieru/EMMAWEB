@@ -154,6 +154,49 @@ npm start
 
 El sitio queda en el puerto 3000 salvo que definas `PORT`.
 
+### 5.1 Alternativa: desplegar en Netlify
+
+Netlify detecta Next.js solo y le aplica su adaptador; **no hay que instalar
+ningún plugin**. Lo que no puede adivinar está en `netlify.toml`, que ya viene
+en el repositorio.
+
+Se despliega **conectando el repositorio de GitHub**, no subiendo un `.zip`.
+Este es un sitio con servidor (base de datos, sesiones, webhook de pago): el
+arrastrar-y-soltar de Netlify solo publica archivos estáticos ya compilados y
+no ejecuta ningún build, así que con el código fuente en un zip nunca va a
+funcionar.
+
+**La base de datos tiene que ser accesible desde internet.** Las funciones de
+Netlify corren en la nube y no ven un PostgreSQL local; hace falta un Postgres
+administrado (Neon, Supabase, Railway, Render). Y como cada invocación abre su
+propia conexión, conviene usar la **cadena con pooler** que ofrezca el
+proveedor y no la directa, o el Postgres se queda sin conexiones libres.
+
+Variables de entorno a cargar en *Site configuration → Environment variables*
+(las mismas de §3, más una):
+
+```env
+AUTH_TRUST_HOST=true
+```
+
+Hace falta sí o sí: el sitio se sirve desde funciones detrás del CDN de
+Netlify, así que Auth.js necesita permiso explícito para confiar en el host de
+la petición. Sin ella el login redirige mal después de autenticar.
+
+Las migraciones (§4) **no corren en el build de Netlify**: se lanzan una vez a
+mano contra la base de producción, desde una máquina con el `DATABASE_URL` de
+producción cargado.
+
+Dos diferencias de comportamiento frente a un servidor propio, ninguna
+bloqueante:
+
+- El límite de intentos de `lib/rate-limit.ts` cuenta en la memoria del
+  proceso. En serverless hay varias instancias, así que el límite efectivo se
+  multiplica por la cantidad de instancias vivas. Sigue frenando fuerza bruta,
+  pero es menos estricto de lo que dicen los números de `auth.ts`.
+- Las cabeceras y los redirects de `next.config.ts` se evalúan **después** del
+  `proxy.ts`, al revés que en Next.js por su cuenta.
+
 ---
 
 ## 6. Crear el primer administrador
