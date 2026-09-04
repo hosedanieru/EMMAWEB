@@ -1,10 +1,10 @@
 "use client";
 
-import { GraduationCap, Heart, MapPin, MessageCircle, TrendingUp } from "lucide-react";
+import { GraduationCap, Heart, Mail, MapPin, MessageCircle, TrendingUp } from "lucide-react";
 import Reveal from "@/components/Reveal";
 import SectionLabel from "@/components/SectionLabel";
 import BotonesContacto from "./BotonesContacto";
-import { linkWhatsApp } from "@/lib/contacto";
+import { linkCorreo, linkWhatsApp } from "@/lib/contacto";
 import { useLocale } from "@/context/LocaleContext";
 
 export type VacantePublica = {
@@ -36,17 +36,9 @@ export default function Vacantes({ vacantes }: { vacantes: VacantePublica[] }) {
 
       <Reveal className="mb-10">
         {vacantes.length === 0 ? (
-          // Sin vacantes abiertas igual se ofrece dejar la hoja de vida: es
-          // justo cuando más sentido tiene poder escribir directo.
           <div className="rounded-brand border border-brand-line-2 bg-white px-6 py-10 text-center">
             <p className="font-medium text-brand-ink">{v.sinVacantesTitulo}</p>
             <p className="mt-1 text-sm text-brand-muted">{v.sinVacantesTexto}</p>
-            <div className="mt-6 flex justify-center">
-              <BotonesContacto
-                mensaje={v.mensajeGeneral}
-                asunto={v.asuntoGeneral}
-              />
-            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -69,26 +61,68 @@ export default function Vacantes({ vacantes }: { vacantes: VacantePublica[] }) {
                   {vacante.descripcion}
                 </p>
 
-                {/* El mensaje ya lleva el nombre de la vacante, así que quien
-                    recibe sabe de entrada a cuál se está postulando sin tener
-                    que preguntarlo. */}
-                <a
-                  href={linkWhatsApp(v.mensajeVacante(vacante.titulo))}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 flex items-center gap-[.35rem] border-t border-brand-line-2 pt-3 text-[0.86rem] font-semibold text-brand-orange-d"
-                >
-                  <MessageCircle className="h-4 w-4 shrink-0" />
-                  {v.postularme}
-                </a>
+                {/* Los dos canales, no solo WhatsApp. El mensaje y el asunto
+                    ya llevan el nombre de la vacante, así que quien recibe
+                    sabe de entrada a cuál se están postulando.
+
+                    El de correo faltaba: `asuntoVacante` llevaba tiempo
+                    definido en el diccionario sin que nadie lo usara. Importa
+                    porque la hoja de vida se adjunta mucho más cómodo desde
+                    el cliente de correo que desde el chat. */}
+                <div className="mt-4 flex flex-col gap-2 border-t border-brand-line-2 pt-3 text-[0.86rem] font-semibold">
+                  <a
+                    href={linkWhatsApp(v.mensajeVacante(vacante.titulo))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-[.35rem] text-brand-orange-d"
+                  >
+                    <MessageCircle className="h-4 w-4 shrink-0" />
+                    {v.postularme}
+                  </a>
+
+                  {/* linkCorreo devuelve null si no hay correo configurado en
+                      lib/contacto.ts, y entonces esta línea no se pinta. */}
+                  {(() => {
+                    const correo = linkCorreo({
+                      asunto: v.asuntoVacante(vacante.titulo),
+                      cuerpo: v.mensajeVacante(vacante.titulo),
+                    });
+                    return correo ? (
+                      <a
+                        href={correo}
+                        className="flex items-center gap-[.35rem] text-brand-green"
+                      >
+                        <Mail className="h-4 w-4 shrink-0" />
+                        {t.contacto.escribirCorreo}
+                      </a>
+                    ) : null;
+                  })()}
+                </div>
               </div>
             ))}
           </div>
         )}
       </Reveal>
 
-      <Reveal className="mb-16 text-center text-sm text-brand-muted">
-        {v.notaHojaDeVida}
+      {/* Este bloque va SIEMPRE, haya vacantes publicadas o no.
+          Antes vivía dentro de la rama "no hay vacantes", así que publicar la
+          primera vacante hacía desaparecer los únicos botones de contacto de
+          toda la sección: quedaban solo los enlaces de WhatsApp de cada
+          tarjeta, sin forma de escribir por correo ni de dejar una hoja de
+          vida espontánea para un puesto que no estuviera en la lista.
+          Justo al revés de lo que hace falta: cuando hay vacantes abiertas es
+          cuando más gente quiere escribir. */}
+      <Reveal className="mb-16">
+        <div className="rounded-brand border border-brand-line-2 bg-white px-6 py-8 text-center">
+          <p className="text-sm text-brand-muted">{v.notaHojaDeVida}</p>
+          <div className="mt-5 flex justify-center">
+            <BotonesContacto
+              mensaje={v.mensajeGeneral}
+              asunto={v.asuntoGeneral}
+              variante="secundaria"
+            />
+          </div>
+        </div>
       </Reveal>
 
       <Reveal>
