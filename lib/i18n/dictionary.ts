@@ -323,7 +323,8 @@ const es = {
         "Emma nace de la visión de Salomón Rodriguez y Miguel Rodriguez, quienes unieron su pasión y experiencia para transformar la industria alimentaria. Nuestro crecimiento no es casualidad: es el resultado de potenciar el talento humano.",
       parrafo2:
         "Actualmente, el 90% de nuestro equipo se encuentra en formación constante, garantizando que cada proceso, desde el origen en el campo hasta tu hogar, sea ejecutado con la excelencia que caracteriza a nuestra compañía.",
-      imagenPlaceholder: "[Imagen: Equipo de trabajo o fotografía de fundadores]",
+      imagenAlt:
+        "El equipo de Emma Colombia reunido en la planta, con la dotación institucional",
     },
     liderazgo: {
       eyebrow: "Dirección",
@@ -723,7 +724,8 @@ const en: typeof es = {
         "Emma was born from the vision of Salomón Rodríguez and Miguel Rodríguez, who combined their passion and experience to transform the food industry. Our growth is no accident: it's the result of empowering human talent.",
       parrafo2:
         "Today, 90% of our team is in constant training, making sure every process, from its origin in the field to your home, is carried out with the excellence that defines our company.",
-      imagenPlaceholder: "[Image: Work team or founders' photo]",
+      imagenAlt:
+        "The Emma Colombia team gathered at the plant, wearing company uniform",
     },
     liderazgo: {
       eyebrow: "Leadership",
