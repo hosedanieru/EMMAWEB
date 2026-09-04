@@ -27,3 +27,27 @@
   # npm omitiría las devDependencies, y prisma, typescript, tailwindcss y
   # eslint-config-next hacen falta para compilar.
   NPM_FLAGS = "--include=dev"
+
+  # Escáner de secretos: se queda ENCENDIDO, solo se le sacan cuatro claves
+  # cuyo valor no es secreto y que por eso aparecían legítimamente en la
+  # salida del build, tumbando el despliegue.
+  #
+  #   SMTP_HOST         "smtp-relay.brevo.com". Coincide dentro del propio
+  #                     nodemailer, que trae una lista de proveedores SMTP
+  #                     conocidos. No es nuestra configuración filtrándose.
+  #   SMTP_TO           Es el correo público de contacto de la empresa, el
+  #                     mismo que se muestra en el sitio (lib/contacto.ts y
+  #                     lib/empresa.ts). Está en la página a propósito.
+  #   APP_URL           La dirección pública del sitio. Sale en el robots.txt.
+  #   WOMPI_PUBLIC_KEY  Pública por definición: viaja en el link del checkout,
+  #                     a la vista del navegador del cliente.
+  #
+  # Lo que NO se omite, y se sigue vigilando: AUTH_SECRET, DATABASE_URL,
+  # WOMPI_INTEGRITY_SECRET, WOMPI_EVENTS_SECRET, WOMPI_PRIVATE_KEY, SMTP_USER
+  # y SMTP_PASS. Si alguno de esos aparece algún día en el build, el
+  # despliegue tiene que fallar. Por eso no se usa SECRETS_SCAN_ENABLED=false:
+  # apagarlo entero dejaría pasar una fuga de verdad sin decir nada.
+  #
+  # SMTP_SECURE y SMTP_PORT no hacen falta acá: el escáner ya ignora los
+  # booleanos y los valores de cuatro caracteres o menos.
+  SECRETS_SCAN_OMIT_KEYS = "SMTP_HOST,SMTP_TO,APP_URL,WOMPI_PUBLIC_KEY"
