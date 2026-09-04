@@ -16,9 +16,19 @@ export default async function AdminLayout({
 }) {
   const session = await auth();
 
-  // proxy.ts ya bloquea si no hay sesión; esto es una segunda capa de
-  // defensa. El chequeo de qué ROL puede entrar a cada sección vive en
-  // el layout de esa sección específica (productos, pedidos, etc.), no acá.
+  // Esta es LA barrera del panel, no una segunda capa: el proxy.ts que antes
+  // bloqueaba antes de llegar acá se eliminó porque Netlify monta el
+  // middleware de Next como Edge Function y ahí fallaba con "nextHandler is
+  // not a function", dejando todo /admin en 500.
+  //
+  // No se pierde nada en seguridad: un Server Component se ejecuta en el
+  // servidor siempre, y este layout envuelve todas las páginas del panel, así
+  // que no hay forma de renderizar una sin pasar por aquí. Las rutas de API
+  // y las Server Actions nunca dependieron del proxy — validan sesión y rol
+  // por su cuenta (ver _actions/auth-guard.ts y api/admin/.../route.ts).
+  //
+  // El chequeo de qué ROL puede entrar a cada sección vive en el layout de
+  // esa sección específica (productos, pedidos, etc.), no acá.
   if (!session?.user) {
     redirect("/admin/login");
   }
