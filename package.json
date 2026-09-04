@@ -7,7 +7,6 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
     "crear-admin": "tsx prisma/seed-admin.ts",
     "seed": "tsx prisma/seed.ts",
     "verificar": "tsx scripts/verificar-pagos.ts"
